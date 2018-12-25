@@ -40,7 +40,13 @@ class Player(pg.sprite.Sprite):
         self.yvel = 0
         self.xvel = 0
         self.onair = True
+        self.oas = False
     def update(self, mup, mdown, mleft, mright):
+        if not self.oas:
+            if self.rect.y + self.yvel <= screenh-250:
+                self.onair = True
+            else:
+                self.onair = False
         if self.rect.y <= 0:
             up = False
         else:
@@ -61,6 +67,7 @@ class Player(pg.sprite.Sprite):
             right = True
         if mup:# and not self.onair:
             self.yvel -= jp
+            self.onair = True
         if mdown and down:
             self.rect.y += dist
         if mleft and left:
@@ -73,10 +80,6 @@ class Player(pg.sprite.Sprite):
                 self.xvel += 0.5
             else:
                 self.xvel += 5
-        if self.rect.y + self.yvel <= screenh-250:
-            self.onair = True
-        else:
-            self.onair = False
         self.rect.y += self.yvel
         if self.onair:
             self.yvel += 1
@@ -86,8 +89,22 @@ class Player(pg.sprite.Sprite):
             self.rect.x += self.xvel
         if not self.onair:
             self.xvel = round(self.xvel*0.4)
+        self.oas = False
     def getxy(self):
         return(self.rect.x,self.rect.y)
+    def col(self,d,g=False):
+        ## collision with wall (d==0), floor (d != 0, g), ceiling (d != 0, !g)
+        if d==0:
+            self.xvel = 0
+        else:
+            self.yvel = -self.yvel
+            if g:
+                self.onair = False
+                self.oas = True
+                self.yvel = 0
+            else:
+                self.onair = True
+                self.oas = True
 class Platform(pg.sprite.Sprite):
     def __init__(self,x,y):
         pg.sprite.Sprite.__init__(self)
@@ -168,7 +185,16 @@ while do:
                     gameover = False
                     reset()
     col = pg.sprite.spritecollide(hullmyts, platform,False)
-    #if len(col) > 0:
+    if len(col) > 0:
+        h = hullmyts.getxy()
+        p = platboi.getxy()
+        if h[1] > p[1]-128 and h[1] < p[1] + 128:
+            hullmyts.col(0)
+        if h[0] > p[0]-128 and h[0] < p[0] + 128:
+            if h[1] < p[1]:
+                hullmyts.col("potato",True)
+            else:
+                hullmyts.col("otherpotato")
     screen.fill((0,0,0))
     score = ("Lifes: " + str(lifes))
     text = font.render(score, True, (255,255,255))
