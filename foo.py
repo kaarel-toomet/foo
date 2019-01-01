@@ -3,13 +3,30 @@ import pygame as pg
 import random as r
 pg.init()
 pic = pg.image.load("hullmyts.png")
+picWidth = 0.05
+# width of pick in terms of pct of screen width
 dpic = pg.image.load("khullmyts2.png")
+dpicWidth = picWidth
 plt = pg.image.load("platform.png")
-pg.font
+pltWidth = 0.08
+
 screen = pg.display.set_mode((0,0), pg.RESIZABLE)
 screenw = screen.get_width()
 screenh = screen.get_height()
 pg.display.set_caption("sgfndfhgkdfbrhgfdscergchdfnkgsdfkjghsvrshtgskrutgspldrutskrdjhtgankjhfairuthvaleiruthacpmeriuthvalneriutelrimtgbajnflkauhrntkvuahlarhtbakvjrhgnakterutvhndkhfaldrjvankrjhgcnakfrhmvladuhgsnkdfhsldrghsvlkrrjtghsvrthgslkjvfsklgshlkruvslkjghslveirghmslvdjgvslnuygrnuhavtleritbhanoerigksadrjghdjhgnliudrgndrhgaserghvrkdighaerliubyakerhnalerijthaelrithaceriutvbaeprtivauiayhrtvalbrtvbalerrhgtvkprdhtgncsketgsnkdfhgksnerytgkcgspguksjhtkucdhgnvksg")
+
+## Scale images to the suitable size on the screen
+picW = picWidth*screen.get_width()
+picH = pic.get_height()*picW/pic.get_width()
+pic = pg.transform.scale(pic, (int(picW), int(picH)))
+##
+pltW = pltWidth*screen.get_width()
+pltH = plt.get_height()*pltW/plt.get_width()
+plt = pg.transform.scale(plt, (int(pltW), int(pltH)))
+
+## ground thickness: how far down (in pixels) will the CH fall
+groundThickness = int(0.06*screen.get_height()) + pic.get_height()
+
 do = True
 dist = 5
 up = True
@@ -43,7 +60,7 @@ class Player(pg.sprite.Sprite):
         self.oas = False
     def update(self, mup, mdown, mleft, mright):
         if not self.oas:
-            if self.rect.y + self.yvel <= screenh-250:
+            if self.rect.y + self.yvel <= screenh-groundThickness:
                 self.onair = True
             else:
                 self.onair = False
@@ -51,11 +68,11 @@ class Player(pg.sprite.Sprite):
             up = False
         else:
             up = True
-        if self.rect.y >= screenh-120:
+        if self.rect.y >= screenh - groundThickness:
             down = False
         else:
             down = True
-        if self.rect.x+ self.xvel <= 0:
+        if self.rect.x + self.xvel <= 0:
             left = False
             self.xvel = 0
         else:
