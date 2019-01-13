@@ -85,26 +85,23 @@ class Player(pg.sprite.Sprite):
             self.yvel += 1
         else:
             self.yvel=0
-        if left and right:
-            self.rect.x += self.xvel
+        self.rect.x += self.xvel
         if not self.onair:
             self.xvel = round(self.xvel*0.4)
         self.oas = False
     def getxy(self):
         return(self.rect.x,self.rect.y)
-    def col(self,d,g=False):
-        ## collision with wall (d==0), floor (d != 0, g), ceiling (d != 0, !g)
-        if d==0:
+    def col(self,xm=0,ym=0):
+        ## collision, xm=wall col, ym=ceil/floor col
+        self.rect.x+=xm
+        self.rect.y+=ym
+        if ym > 0:
+            self.onair = False
+            self.oas = True
+        if xm != 0:
             self.xvel = 0
-        else:
-            self.yvel = -self.yvel
-            if g:
-                self.onair = False
-                self.oas = True
-                self.yvel = 0
-            else:
-                self.onair = True
-                self.oas = True
+        if ym != 0:
+            self.yvel = 0
 class Platform(pg.sprite.Sprite):
     def __init__(self,x,y):
         pg.sprite.Sprite.__init__(self)
@@ -115,11 +112,13 @@ class Platform(pg.sprite.Sprite):
     def getxy(self):
         return(self.rect.x,self.rect.y)
 def reset():
+    platboi = Platform(screenw/2,screenh/2)
+    platform.add(platboi)
     lifes = 5
     player.empty()
     hullmyts = Player(screenw/2,screenh/2)
     player.add(hullmyts)
-hullmyts = Player(screenw/2,screenh/2)
+hullmyts = Player(screenw/2,screenh-200)
 player.add(hullmyts)
 platboi = Platform(screenw/2,screenh/2)
 platform.add(platboi)
@@ -188,13 +187,16 @@ while do:
     if len(col) > 0:
         h = hullmyts.getxy()
         p = platboi.getxy()
-        if h[1] > p[1]-128 and h[1] < p[1] + 128:
-            hullmyts.col(0)
-        if h[0] > p[0]-128 and h[0] < p[0] + 128:
-            if h[1] < p[1]:
-                hullmyts.col("potato",True)
-            else:
-                hullmyts.col("otherpotato")
+        dx = h[0]-p[0]
+        dy = h[1]-p[1]
+        if dx > 64 and dx < 128:
+            hullmyts.col((128-dx))
+        if dx < -64 and dx > -128:
+            hullmyts.col(-128-dx)
+        if dy > 64 and dy < 128:
+            hullmyts.col(0,128-dy)
+        if dy < -64 and dy > -128:
+            hullmyts.col(0,-128-dy)
     screen.fill((0,0,0))
     score = ("Lifes: " + str(lifes))
     text = font.render(score, True, (255,255,255))
